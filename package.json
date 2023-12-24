@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "name": "discord-blindtest",
+  "description": "Make musical blindtest easily for your discord bot.",
+  "main": "dist/index.js",
+  "types": "dist/types",
+  "license": "Apache-2.0",
+  "keywords": [
+    "blindtest",
+    "lavalink",
+    "discord",
+    "music",
+    "shoukaku",
+    "kazagumo"
+  ],
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "@zeleff_",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "kazagumo": "^2.3.3",
+    "shoukaku": "^3.4.2",
+    "string-similarity": "^4.0.4"
+  }
+}
