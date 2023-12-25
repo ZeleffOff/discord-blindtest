@@ -9,12 +9,15 @@ import {
 	VoiceBasedChannel,
 } from 'discord.js';
 import Player from './Player';
-import { BlindtestOptions } from '../types/Blindtest';
+import { BlindtestOptions, Score } from '../types/Blindtest';
+import BlindtestSessions from './Sessions';
 
 class Game {
 	private readonly interaction: Interaction | Message;
 	private readonly kazagumo: Kazagumo;
 	private cooldowns: Set<string> = new Set();
+	public sessions: BlindtestSessions = new BlindtestSessions();
+	private score: Score = {};
 
 	private player!: Player;
 	private gameHost!: GuildMember;
@@ -22,13 +25,14 @@ class Game {
 	private gameChannel!: TextBasedChannel;
 	private gameVoice!: VoiceBasedChannel;
 
-	private currentRound: number = 0;
 	private tracks: KazagumoTrack[] = [];
 
 	private pauseDuration: number = 5; // Cooldown in seconds before the start of the next round.
 	private listeningDuration: number = 10; // Listening time
-	private round: number = 5; // Total round
 	private userCooldown: number = 3; // Cooldown when a user gives a response
+
+	public totalRound: number = 5;
+	public currentRound: number = 0;
 
 	/**
 	 *
@@ -40,19 +44,43 @@ class Game {
 		if (!this.interaction) throw Error('Interaction not found.');
 
 		this.kazagumo = kazagumo;
+		if (!this.kazagumo) throw Error('Kazagumo not found.');
 	}
 
 	/**
 	 * Launch the game and manage the rounds.
 	 */
 	async start() {
-		while (this.round > this.currentRound) {
+		while (this.totalRound > this.currentRound) {
+			// No cooldown for the first round
+			if (this.currentRound != 0)
+				await this.waitForNextRound(this.pauseDuration * 1000);
+
 			const track = this.tracks[this.currentRound];
 			await this.gameHandler(track, this.listeningDuration * 1000);
 
-			await this.waitForNextRound(this.pauseDuration * 1000);
 			this.currentRound++;
 		}
+
+		// Stop the game
+		this.stop(true);
+	}
+
+	/**
+	 * Stop the blindtest and send score.
+	 * @param sendScore
+	 */
+	public stop(sendScore: boolean): { userId: string; score: number }[] {
+		// Delete guild in game sessions
+		this.sessions.delete(this.gameGuild.id);
+
+		// Destroy player
+		this.player.stopListening(true);
+
+		// Send score
+		if (sendScore) this.gameChannel.send({ content: `End of blindtest.` });
+
+		return this.leaderboard;
 	}
 
 	/**
@@ -96,7 +124,9 @@ class Game {
 			});
 
 			collector?.on('end', () => {
-				this.player.stopListening();
+				// Stop the current track
+				this.player.stopListening(false);
+
 				resolve();
 			});
 		});
@@ -152,7 +182,7 @@ class Game {
 
 		this.player = new Player(this.kazagumo, playerOptions);
 		this.tracks = await this.checkTracks(blindtestOptions);
-		this.round = this.round ?? this.tracks.length;
+		this.totalRound = this.tracks.length;
 	}
 
 	/**
@@ -188,11 +218,6 @@ class Game {
 	): BlindtestOptions {
 		if (!blindtestOptions) throw Error('Blindtest options required.');
 		else if (!blindtestOptions.songs.length) throw Error('Songs required.');
-		else if (
-			blindtestOptions.round &&
-			blindtestOptions.songs.length < blindtestOptions.round
-		)
-			throw Error('Nombre de round supérieur au nombre de musique.');
 
 		return blindtestOptions;
 	}
@@ -221,6 +246,14 @@ class Game {
 		}
 
 		return { tracks: fetchedTracks, notFoundTracks: noFetchedTracks };
+	}
+
+	get leaderboard() {
+		const score = Object.keys(this.score).map((k, i) => {
+			return { userId: k, score: this.score[k] };
+		});
+
+		return score.sort((a, b) => a.score - b.score);
 	}
 }
 
