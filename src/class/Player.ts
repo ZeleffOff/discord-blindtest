@@ -28,10 +28,12 @@ class Player {
 		return track;
 	}
 
-	public stopListening() {
+	public stopListening(destroy: boolean) {
 		if (!this.player)
 			throw Error('[Blindtest#stopListening] Error: No player found.');
-		this.player.shoukaku.stopTrack();
+
+		if (destroy) this.player.destroy();
+		else this.player.shoukaku.stopTrack();
 	}
 
 	private async createPlayer(
