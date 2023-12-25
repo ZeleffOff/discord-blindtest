@@ -2,15 +2,12 @@ import { Client, Interaction, Message } from 'discord.js';
 import { Connectors, NodeOption } from 'shoukaku';
 import { Kazagumo } from 'kazagumo';
 import { BlindtestOptions } from '../types/Blindtest';
-import BlindtestSessions from './Sessions';
 import Game from './Game';
 
 class Blindtest {
 	private readonly client: Client;
 	private readonly kazagumo: Kazagumo;
 	private readonly nodes: NodeOption[];
-
-	public sessions: BlindtestSessions = new BlindtestSessions();
 
 	/**
 	 * @param client - Discord#Client
