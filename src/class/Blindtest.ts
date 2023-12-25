@@ -46,7 +46,7 @@ class Blindtest {
 
 			return game;
 		} catch (error) {
-			console.error('[Blindtest#start] Error:', error);
+			console.error('[Blindtest#start]', error);
 		}
 	}
 }
