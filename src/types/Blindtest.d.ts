@@ -29,4 +29,11 @@ export type BlindtestOptions = {
 	 * - Caution: If the number of rounds exceeds the number of songs, it will result in errors.
 	 */
 	round?: number;
+
+	/**
+	 * If a music from the songs[] list is not found.
+	 * - true - Run the blindtest anyway.
+	 * - false - Returns an error.
+	 */
+	forcePlay?: boolean;
 } & Partial<GameOptions>;
