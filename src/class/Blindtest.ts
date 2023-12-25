@@ -9,7 +9,6 @@ class Blindtest {
 	private readonly client: Client;
 	private readonly kazagumo: Kazagumo;
 	private readonly nodes: NodeOption[];
-	private cooldowns: Set<string> = new Set();
 
 	public sessions: BlindtestSessions = new BlindtestSessions();
 

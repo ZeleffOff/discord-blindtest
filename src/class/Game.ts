@@ -25,10 +25,10 @@ class Game {
 	private currentRound: number = 0;
 	private tracks: KazagumoTrack[] = [];
 
-	private pauseDuration: number = 5;
-	private listeningDuration: number = 30;
-	private round: number = 5;
-	private userCooldown: number = 3;
+	private pauseDuration: number = 5; // Break time before the start of the next round
+	private listeningDuration: number = 10; // Listening time
+	private round: number = 5; // Total round
+	private userCooldown: number = 3; // Cooldown when a user gives a response
 
 	constructor(interaction: Interaction | Message, kazagumo: Kazagumo) {
 		this.interaction = interaction;
@@ -40,7 +40,7 @@ class Game {
 	async start() {
 		while (this.round > this.currentRound) {
 			const track = this.tracks[this.currentRound];
-			await this.gameHandler(track);
+			await this.gameHandler(track, this.listeningDuration * 1000);
 
 			await this.waitForNextRound(this.pauseDuration * 1000);
 			this.currentRound++;
@@ -54,7 +54,10 @@ class Game {
 		return new Promise((resolve) => setTimeout(resolve, cooldown));
 	}
 
-	private async gameHandler(track: KazagumoTrack): Promise<void> {
+	private async gameHandler(
+		track: KazagumoTrack,
+		listeningDuration: number
+	): Promise<void> {
 		await this.player.listen(track);
 
 		const collector = this.gameChannel?.createMessageCollector({
@@ -67,7 +70,7 @@ class Game {
 
 				return true;
 			},
-			time: 10000,
+			time: listeningDuration,
 		});
 
 		return new Promise((resolve) => {
@@ -100,7 +103,6 @@ class Game {
 
 		this.listeningDuration = blindtestOptions.listeningDuration ?? 30;
 		this.pauseDuration = blindtestOptions.pauseDuration ?? 5;
-		this.round = blindtestOptions.round ?? blindtestOptions.songs.length;
 		this.gameHost = this.interaction.member as GuildMember;
 
 		this.gameGuild = this.interaction.guild;
