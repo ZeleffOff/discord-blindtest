@@ -1,8 +1,10 @@
 import { Client, Interaction, Message } from 'discord.js';
 import { Connectors, NodeOption } from 'shoukaku';
 import { Kazagumo } from 'kazagumo';
+import Spotify from 'kazagumo-spotify';
 import { BlindtestOptions } from '../types/Blindtest';
 import Game from './Game';
+import { SpotifyOptions } from 'kazagumo-spotify/dist/Plugin';
 
 class Blindtest {
 	private readonly client: Client;
@@ -14,7 +16,12 @@ class Blindtest {
 	 * @param nodes - Array of Lavalink nodes
 	 * @param kazagumo - If your project already has an instance of kazagumo
 	 */
-	constructor(client: Client, nodes: NodeOption[], kazagumo?: Kazagumo) {
+	constructor(
+		client: Client,
+		spotifyCredentials: SpotifyOptions,
+		nodes: NodeOption[],
+		kazagumo?: Kazagumo
+	) {
 		this.client = client;
 		this.nodes = nodes;
 
@@ -22,7 +29,8 @@ class Blindtest {
 			kazagumo ??
 			new Kazagumo(
 				{
-					defaultSearchEngine: 'youtube',
+					defaultSearchEngine: 'spotify',
+					plugins: [new Spotify(spotifyCredentials)],
 					send: (guildId, payload) => {
 						const guild = client.guilds.cache.get(guildId);
 						if (guild) guild.shard.send(payload);
