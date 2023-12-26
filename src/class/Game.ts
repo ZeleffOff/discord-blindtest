@@ -11,6 +11,7 @@ import {
 import Player from './Player';
 import { BlindtestOptions, Score } from '../types/Blindtest';
 import BlindtestSessions from './Sessions';
+import stringSimilarity from 'string-similarity';
 
 class Game {
 	private readonly interaction: Interaction | Message;
@@ -34,6 +35,11 @@ class Game {
 	public totalRound: number = 5;
 	public currentRound: number = 0;
 
+	private trackDataFound: { title: string | null; author: string | null } = {
+		title: null,
+		author: null,
+	};
+
 	/**
 	 *
 	 * @param interaction - Discord#Interaction | Discord#Message
@@ -52,12 +58,18 @@ class Game {
 	 */
 	async start() {
 		while (this.totalRound > this.currentRound) {
-			// No cooldown for the first round
+			// Clear data found
+			this.trackDataFound = {
+				title: null,
+				author: null,
+			};
+
+			// No waiting for the first round
 			if (this.currentRound != 0)
 				await this.waitForNextRound(this.pauseDuration * 1000);
 
-			const track = this.tracks[this.currentRound];
-			await this.gameHandler(track, this.listeningDuration * 1000);
+			// Start the listening
+			await this.gameHandler(this.currentTrack, this.listeningDuration * 1000);
 
 			this.currentRound++;
 		}
@@ -120,7 +132,18 @@ class Game {
 
 		return new Promise((resolve) => {
 			collector?.on('collect', (message) => {
-				if (message.content === 'test') message.reply('passed.');
+				const dataFounded = this.checkAnswer(
+					message.content.toLocaleLowerCase(),
+					message.member!
+				);
+
+				let content = '';
+				if (dataFounded.artistFounded) content += 'Artist founded !';
+				if (dataFounded.titleFounded) content += '\nTitle founded !';
+
+				this.updateScore(message.member!, dataFounded);
+
+				message.reply({ content });
 			});
 
 			collector?.on('end', () => {
@@ -130,6 +153,50 @@ class Game {
 				resolve();
 			});
 		});
+	}
+
+	private checkAnswer(content: string, player: GuildMember) {
+		const { author, title } = this.currentTrack;
+		const artistFounded =
+			author && !this.trackDataFound.author
+				? this.checkSimilarity(author.toLocaleLowerCase(), content)
+				: false;
+		const titleFounded = !this.trackDataFound.title
+			? this.checkSimilarity(title.toLocaleLowerCase(), content)
+			: false;
+
+		if (artistFounded) this.trackDataFound.author = player.id;
+		if (titleFounded) this.trackDataFound.title = player.id;
+
+		console.log(author, title);
+		return {
+			artistFounded,
+			titleFounded,
+		};
+	}
+
+	private updateScore(
+		player: GuildMember,
+		dataFounded: { artistFounded: boolean; titleFounded: boolean }
+	) {
+		let score = 0;
+		if (dataFounded.artistFounded) score++;
+		if (dataFounded.titleFounded) score++;
+
+		if (this.score[player.id]) this.score[player.id] += score;
+		else this.score[player.id] = score;
+	}
+
+	private checkSimilarity(sentence: string, target: string) {
+		const targetSplit = target.split(/ +/);
+		const sentenceSplit = sentence.split(/ +/);
+
+		const similarity_length = sentenceSplit.filter((w) => {
+			const similarity = stringSimilarity.findBestMatch(w, targetSplit);
+			if (similarity.bestMatch.rating >= 0.7) return true;
+		});
+
+		return similarity_length.length >= targetSplit.length / 2;
 	}
 
 	/**
@@ -234,7 +301,10 @@ class Game {
 		const noFetchedTracks: string[] = [];
 
 		for (let i = 0; i < tracks.length; i++) {
-			const result = await this.kazagumo.search(tracks[i]);
+			const result = await this.kazagumo.search(tracks[i], {
+				engine: 'spotify',
+				requester: null,
+			});
 			const track = result.tracks[0];
 
 			if (!track) {
@@ -254,6 +324,10 @@ class Game {
 		});
 
 		return score.sort((a, b) => a.score - b.score);
+	}
+
+	get currentTrack() {
+		return this.tracks[this.currentRound];
 	}
 }
 
