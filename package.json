@@ -20,7 +20,11 @@
   "dependencies": {
     "discord.js": "^14.14.1",
     "kazagumo": "^2.3.3",
+    "kazagumo-spotify": "^1.2.1",
     "shoukaku": "^3.4.2",
     "string-similarity": "^4.0.4"
+  },
+  "devDependencies": {
+    "@types/string-similarity": "^4.0.2"
   }
 }
