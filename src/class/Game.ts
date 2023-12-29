@@ -71,11 +71,30 @@ class Game {
 			// Start the listening
 			await this.gameHandler(this.currentTrack, this.listeningDuration * 1000);
 
+			// Send response embed
+			this.sendResponse();
+
 			this.currentRound++;
 		}
 
 		// Stop the game
 		this.stop(true);
+	}
+
+	private sendResponse() {
+		const { author, title, thumbnail } = this.currentTrack;
+
+		this.gameChannel.send({
+			content: `Response for round \`${this.currentRound + 1}\``,
+			embeds: [
+				{
+					title: title,
+					description: `Auteur: ${author}`,
+					thumbnail: { url: thumbnail ?? '' },
+					color: 0x5f42d3,
+				},
+			],
+		});
 	}
 
 	/**
