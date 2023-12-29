@@ -1,5 +1,26 @@
+import { SpotifyOptions } from 'kazagumo-spotify/dist/Plugin';
 import { NodeOption } from 'shoukaku';
 
+/**
+ * Options for Blindtest class.
+ */
+export type Options = {
+	spotifyCredentials: SpotifyOptions;
+	nodes: NodeOption[];
+	messages: BlindtestMessages;
+};
+
+/**
+ * Blindtest messages
+ */
+type BlindtestMessages = {
+	nextRoundCooldownMessage: string;
+	foundedDataMessage: string;
+};
+
+/**
+ * Game options.
+ */
 type GameOptions = {
 	/** Listening song duration in seconds.
 	 * - default: 30 seconds
@@ -17,6 +38,9 @@ type GameOptions = {
 	userCooldown: number;
 };
 
+/**
+ * Blindtest options.
+ */
 export type BlindtestOptions = {
 	/**
 	 * Array of URL links of songs.
@@ -32,6 +56,9 @@ export type BlindtestOptions = {
 	forcePlay?: boolean;
 } & Partial<GameOptions>;
 
+/**
+ * Game score.
+ */
 type Score = {
 	[k: string]: number;
 };
