@@ -1,7 +1,7 @@
 import { Kazagumo } from 'kazagumo';
 import Spotify from 'kazagumo-spotify';
-import { Connectors, NodeOption } from 'shoukaku';
-import { BlindtestOptions, Options } from '../types/Blindtest';
+import { Connectors } from 'shoukaku';
+import { BlindtestOptions, Options } from '../../types/types';
 import { Client, Interaction, Message } from 'discord.js';
 import Game from './Game';
 
