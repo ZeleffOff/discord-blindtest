@@ -1,4 +1,5 @@
 import { CreatePlayerOptions, Kazagumo, KazagumoTrack } from 'kazagumo';
+import stringSimilarity from 'string-similarity';
 import {
 	ChannelType,
 	Guild,
@@ -9,13 +10,13 @@ import {
 	VoiceBasedChannel,
 } from 'discord.js';
 import Player from './Player';
-import { BlindtestOptions, Score } from '../types/Blindtest';
+import { BlindtestOptions, Score } from '../../types/types';
 import BlindtestSessions from './Sessions';
-import stringSimilarity from 'string-similarity';
 
 class Game {
 	private readonly interaction: Interaction | Message;
 	private readonly kazagumo: Kazagumo;
+
 	private cooldowns: Set<string> = new Set();
 	public sessions: BlindtestSessions = new BlindtestSessions();
 	private score: Score = {};
@@ -120,7 +121,7 @@ class Game {
 	 */
 	private async waitForNextRound(cooldown: number): Promise<void> {
 		this.interaction.channel?.send({
-			content: `Prochain round dans \`${cooldown / 1000} secondes\`.`,
+			content: `Next round in \`${cooldown / 1000} seconds\`.`,
 		});
 		return new Promise((resolve) => setTimeout(resolve, cooldown));
 	}
